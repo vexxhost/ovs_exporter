@@ -1,0 +1,74 @@
+# Copyright (c) 2024 VEXXHOST, Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+- secret:
+    name: ovs-system-registry-credentials
+    data:
+      registry.atmosphere.dev:
+        username: robot$library+ovs-system
+        password: !encrypted/pkcs1-oaep
+          - aPbJrqzHYqxirmKVMGS56R7rFw+a5WlZqPhLeQIUCgtMVS/bf3KBB85rooPOdjEutyy7r
+            MzueocAessbamunF9wgm4B2j+hd6nPfJVQl7C1yjQuK/aBEEai8J1vCNTCskIvy+HSrG6
+            BALqOQAV6TPK4XKpgzCvWEJxFqQTEUI44N0gSVJMIPcyFXN2o+wfUxS/vR0yAOb3KhMaA
+            461c06M+f6ik/K0pIZJDn2iFSuUwwsNJgD8+rHA1OxiP2MN41OAXpUdiw+fMkRHKj+wj4
+            di3V+dHqoDdzI9Fk8wR/3Y+ebQWdeeEL+7xpoxS5tXtrS9rdUUqqTFdOYALOqtY8NMERP
+            zz2JYMCEzjDoozE7iTX8Hnuj0ALP+dzbvrDh6qeQrGAedPkP1UWKxolkDCaunsOmGJOds
+            vB62HdEOMAdgTPOv5G5S38x7lVC6h/MT1XTsao2PZozmsB+KvXJ5HPTPTa9Qv+AB34YOD
+            S05DDDY4gmW/B/NaTuKyQ3mNdOJ5J1+TFVJ+yeLaXdzQdffo2rfITlWr4p+nLCdm8esSn
+            zNP6a5iNc3iJaS7sbWE7bLN5Z0uDwf0XWnBfuzuzo0tasKaTklxV1pqySldM3jueYwiij
+            de1AHbnsa/0ItwwW1HrJzHPWyIugg8d3rRTjAgpL1wZZzsbd5EIiy/5L8dGoB0=
+
+- job:
+    name: ovs-exporter-build-container-image
+    parent: ci-build-container-image
+    vars: &container_image_vars
+      container_command: docker
+      promote_container_image_method: intermediate-registry
+      promote_container_image_job: ovs-exporter-upload-container-image
+      buildset_registry_namespaces:
+        - ['docker.io', 'https://registry-1.docker.io']
+        - ['quay.io', 'https://quay.io']
+        - ['gcr.io', 'https://gcr.io']
+        - ['registry.atmosphere.dev', 'https://registry.atmosphere.dev']
+      container_images:
+        - context: .
+          registry: registry.atmosphere.dev
+          repository: registry.atmosphere.dev/library/ovs-exporter
+          arch:
+            - linux/amd64
+            - linux/arm64
+          tags:
+            - "{{ zuul.commit_id }}"
+            - "{{ zuul.tag is defined | ternary(zuul.tag, 'latest') }}"
+
+- job:
+    name: ovs-exporter-upload-container-image
+    parent: ci-upload-container-image
+    vars: *container_image_vars
+    secrets:
+      name: container_registry_credentials
+      secret: ovs-system-registry-credentials
+      pass-to-parent: true
+
+- job:
+    name: ovs-exporter-promote-container-image
+    parent: ci-promote-container-image
+    vars: *container_image_vars
+    secrets:
+      name: container_registry_credentials
+      secret: ovs-system-registry-credentials
+      pass-to-parent: true
+    nodeset:
+      nodes: []
+
+- project:
+    merge-mode: squash-merge
+    check:
+      jobs:
+        - ovs-exporter-build-container-image
+    gate:
+      jobs:
+        - ovs-exporter-upload-container-image
+    promote:
+      jobs:
+        - ovs-exporter-promote-container-image
