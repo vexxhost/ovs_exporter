@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 - secret:
-    name: registry-credentials
+    name: ovs-system-registry-credentials
     data:
       registry.atmosphere.dev:
         username: robot$library+ovs-system
@@ -47,7 +47,7 @@
     vars: *container_image_vars
     secrets:
       name: container_registry_credentials
-      secret: registry-credentials
+      secret: ovs-system-registry-credentials
       pass-to-parent: true
 
 - job:
@@ -56,7 +56,7 @@
     vars: *container_image_vars
     secrets:
       name: container_registry_credentials
-      secret: registry-credentials
+      secret: ovs-system-registry-credentials
       pass-to-parent: true
     nodeset:
       nodes: []
