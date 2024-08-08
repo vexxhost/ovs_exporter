@@ -200,13 +200,20 @@ func (c *InterfaceCollector) collectBfdFlapCount(ch chan<- prometheus.Metric, if
 }
 
 func (c *InterfaceCollector) collectStatistics(ch chan<- prometheus.Metric, iface ovsmodel.Interface) {
+	mac := "unknown"
+	if iface.MACInUse != nil {
+		mac = *iface.MACInUse
+	} else {
+		level.Warn(c.logger).Log("msg", "MAC address is nil for interface", "interface", iface.Name)
+	}
+
 	for stat, value := range iface.Statistics {
 		ch <- prometheus.MustNewConstMetric(
 			c.ifaceStatistics,
 			prometheus.CounterValue,
 			float64(value),
 			iface.Name,
-			*iface.MACInUse,
+			mac,
 			stat,
 		)
 	}
