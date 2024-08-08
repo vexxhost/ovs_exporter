@@ -108,8 +108,15 @@ func (c *InterfaceCollector) Collect(ch chan<- prometheus.Metric) {
 
 func (c *InterfaceCollector) collectAdminState(ch chan<- prometheus.Metric, iface ovsmodel.Interface) {
 	adminState := float64(0)
-	if *iface.AdminState == "up" {
+	if iface.AdminState != nil && *iface.AdminState == "up" {
 		adminState = 1
+	}
+
+	mac := "unknown"
+	if iface.MACInUse != nil {
+		mac = *iface.MACInUse
+	} else {
+		level.Warn(c.logger).Log("msg", "MAC address is nil for interface", "interface", iface.Name)
 	}
 
 	ch <- prometheus.MustNewConstMetric(
@@ -117,7 +124,7 @@ func (c *InterfaceCollector) collectAdminState(ch chan<- prometheus.Metric, ifac
 		prometheus.GaugeValue,
 		adminState,
 		iface.Name,
-		*iface.MACInUse,
+		mac,
 	)
 }
 
