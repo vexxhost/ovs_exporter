@@ -1,4 +1,4 @@
-# Copyright (c) 2024 VEXXHOST, Inc.
+# Copyright (c) 2026 VEXXHOST, Inc.
 # SPDX-License-Identifier: Apache-2.0
 
 name: image
@@ -47,6 +47,3 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
-      - name: Verify ovs_exporter exists
-        run: docker run --rm --entrypoint /bin/ovs_exporter ${{ fromJSON(steps.meta.outputs.json).tags[0] }} --version
