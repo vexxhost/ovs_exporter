@@ -8,7 +8,7 @@ require (
 	github.com/ovn-org/libovsdb v0.7.0
 	github.com/prometheus/client_golang v1.17.0
 	github.com/prometheus/common v0.45.0
-	github.com/prometheus/exporter-toolkit v0.11.0
+	github.com/prometheus/exporter-toolkit v0.19.0
 )
 
 require (
